@@ -17,7 +17,7 @@ setup(
 
   version=version["__version__"],
 
-  description='Unorganized library of utility functions to aid with machine learning of cardiac ultrasound.',
+  description='Utility functions to aid with machine learning of cardiac ultrasound.',
 
   long_description=long_description,
 
@@ -54,7 +54,6 @@ setup(
     'torchvision',
     'wget',
     'matplotlib',
-    'json',
     'pandas',
     'Pillow',
     'scikit-image',

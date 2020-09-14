@@ -1,6 +1,16 @@
 from sonotools.__version__ import __version__
 
+import torch
+import torchvision
 
+import os, os.path
+from pathlib import Path
+
+import cv2  # pytype: disable=attribute-error
+import matplotlib
+import numpy as np
+
+import wget
 
 def loadVideo(filename: str):
     """
