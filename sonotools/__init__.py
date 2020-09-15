@@ -12,6 +12,8 @@ import numpy as np
 
 import wget
 
+import PIL
+
 def loadVideo(filename: str):
     """
     Loads a movie into a numpy array
