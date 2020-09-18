@@ -129,6 +129,34 @@ def cropSquare(img: PIL.Image):
     return img.crop((l, t, r, bt))
 
 
+def flushDotDS_Store(rootDir):
+    """
+    Deletes .DS_Store from a directory and it's children
+    ----------
+    rootDir : path or str
+        directory to walk
+    Notes
+    -----
+    Example
+      flushDotDS_Store('./dataset')
+    """
+    for root, dirs, files in os.walk(rootDir):
+    i = 0
+    for file in files:
+        if file.endswith('.DS_Store'):
+            path = os.path.join(root, file)
+
+            print("Deleting: %s" % path)
+
+            if os.remove(path):
+                print("Unable to delete!")
+            else:
+                print("Deleted...")
+                i = i+1
+
+    print("Files Deleted: %d" % i)
+
+
 def loadEchoNetSegmentation(DestinationForWeights: str):
     """
     Returns resnet 50 nn with weights loaded from echonet
@@ -238,4 +266,44 @@ def findEdges(x, thresh=0.1):
     return (left,right)
 
 
-__all__ = ["__version__", "loadVideo", "captureVideoProps", "dice", "cropSquare", "findEdges", "countUniquePixels", "countUniquePixelsAlongFrames", "validateVideoForAutoCrop", "loadEchoNetSegmentation"]
+def predictLV(model, filepath):
+
+  def segmentPIL(inp, model):
+    x = inp.transpose([2, 0, 1])  #  channels-first
+    x = np.expand_dims(x, axis=0)  # adding a batch dimension
+
+    mean = x.mean(axis=(0, 2, 3))
+    std = x.std(axis=(0, 2, 3))
+    x = x - mean.reshape(1, 3, 1, 1)
+    x = x / std.reshape(1, 3, 1, 1)
+
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    with torch.no_grad():
+        x = torch.from_numpy(x).type('torch.FloatTensor').to(device)
+        output = model(x)
+
+    y = output['out'].numpy()
+    y = y.squeeze()
+
+    out = y>0
+
+    mask = np.zeros((inp.shape[0], inp.shape[1]), np.int8)
+    mask[out] = 255
+
+    return mask.astype(np.bool)
+
+  img = PIL.Image.open(str(filepath))
+  img = img.convert('RGB')
+  img = cropSquare(img)
+  img = img.resize((112,112))
+  img = np.array(img)
+  y = segmentPIL(img, model)
+
+  return y
+
+
+__all__ = ["__version__", "loadVideo", "captureVideoProps", "dice", "cropSquare", "findEdges", "countUniquePixels", "countUniquePixelsAlongFrames", "validateVideoForAutoCrop", "loadEchoNetSegmentation", "predictLV"]
